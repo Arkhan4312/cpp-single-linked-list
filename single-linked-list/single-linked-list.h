@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstddef>
 #include <string>
 #include <utility>
@@ -45,7 +46,7 @@ class SingleLinkedList {
         }
 
         [[nodiscard]] bool operator!=(const BasicIterator<const Type>& rhs) const noexcept {
-            return node_ != rhs.node_;
+            return !(node_ == rhs.node_);
         }
 
         [[nodiscard]] bool operator==(const BasicIterator<Type>& rhs) const noexcept {
@@ -53,13 +54,12 @@ class SingleLinkedList {
         }
 
         [[nodiscard]] bool operator!=(const BasicIterator<Type>& rhs) const noexcept {
-            return node_ != rhs.node_;
+            return !(node_ == rhs.node_);
         }
 
         BasicIterator& operator++() noexcept {
-            if (node_) {
-                node_ = node_->next_node;
-            }
+            assert(node_ != nullptr);
+            node_ = node_->next_node;
             return *this;
         }
 
@@ -70,10 +70,12 @@ class SingleLinkedList {
         }
 
         [[nodiscard]] reference operator*() const noexcept {
+            assert(node_ != nullptr);
             return node_->value;
         }
 
         [[nodiscard]] pointer operator->() const noexcept {
+            assert(node_ != nullptr);
             return &node_->value;
         }
 
@@ -177,6 +179,7 @@ class SingleLinkedList {
         }
 
         Iterator InsertAfter(ConstIterator pos, const Type& value) {
+            assert(pos.node_ != nullptr);
             Node* current = pos.node_;
             Node* new_node = new Node(value, current->next_node);
             current->next_node = new_node;
@@ -185,9 +188,7 @@ class SingleLinkedList {
         }
 
         void PopFront() noexcept {
-            if (IsEmpty()) {
-                return;
-            }
+            assert(!IsEmpty());
             Node* to_delete = head_.next_node;
             head_.next_node = to_delete->next_node;
             delete to_delete;
@@ -195,6 +196,8 @@ class SingleLinkedList {
         }
 
         Iterator EraseAfter(ConstIterator pos) noexcept {
+            assert(pos.node_ != nullptr);
+            assert(pos.node_->next_node != nullptr);
             Node* current = pos.node_;
             Node* to_delete = current->next_node;
             Node* next_node = to_delete->next_node;
@@ -228,7 +231,13 @@ void swap(SingleLinkedList<Type>& lhs, SingleLinkedList<Type>& rhs) noexcept {
 
 template <typename Type>
 bool operator==(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& rhs) {
-    return lhs.GetSize() == rhs.GetSize() && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+    if (&lhs == &rhs) {
+        return true;
+    }
+    if (lhs.GetSize() != rhs.GetSize()) {
+        return false;
+    }
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
 template <typename Type>
