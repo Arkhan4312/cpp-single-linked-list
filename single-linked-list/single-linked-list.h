@@ -9,10 +9,12 @@ class SingleLinkedList {
 
     struct Node {
         Node() = default;
+
         Node(const Type& val, Node* next)
             : value(val)
             , next_node(next) {
         }
+
         Type value = Type{};
         Node* next_node = nullptr;
     };
@@ -34,8 +36,7 @@ class SingleLinkedList {
         BasicIterator() = default;
 
         BasicIterator(const BasicIterator<Type>& other) noexcept
-            : node_(other.node_) {
-        }
+            : node_(other.node_) {}
 
         BasicIterator& operator=(const BasicIterator& rhs) = default;
 
@@ -80,143 +81,144 @@ class SingleLinkedList {
         Node* node_ = nullptr;
     };
 
-public:
-    using value_type = Type;
-    using reference = value_type&;
-    using const_reference = const value_type&;
+    public:
+        using value_type = Type;
+        using reference = value_type&;
+        using const_reference = const value_type&;
 
-    using Iterator = BasicIterator<Type>;
-    using ConstIterator = BasicIterator<const Type>;
+        using Iterator = BasicIterator<Type>;
+        using ConstIterator = BasicIterator<const Type>;
 
-    SingleLinkedList() = default;
+        SingleLinkedList() = default;
 
-    SingleLinkedList(std::initializer_list<Type> values) {
-        Node* current = &head_;
-        for (const auto& val : values) {
-            current->next_node = new Node(val, nullptr);
-            current = current->next_node;
+        SingleLinkedList(std::initializer_list<Type> values) {
+            Node* current = &head_;
+            for (const auto& val : values) {
+                current->next_node = new Node(val, nullptr);
+                current = current->next_node;
+                ++size_;
+            }
+        }
+
+        SingleLinkedList(const SingleLinkedList& other) {
+            Node* current = &head_;
+            for (auto it = other.begin(); it != other.end();++it) {
+                current->next_node = new Node(*it, nullptr);
+                current = current->next_node;
+                ++size_;
+            }
+        }
+
+        ~SingleLinkedList() {
+            Clear();
+        }
+
+        SingleLinkedList& operator=(const SingleLinkedList& rhs) {
+            if (this != &rhs) {
+                SingleLinkedList temp(rhs);
+                swap(temp);
+            }
+            return *this;
+        }
+
+        void swap(SingleLinkedList& other) noexcept {
+            std::swap(head_.next_node, other.head_.next_node);
+            std::swap(size_, other.size_);
+        }
+
+        [[nodiscard]] Iterator begin() noexcept {
+            return Iterator{ head_.next_node };
+        }
+
+        [[nodiscard]] Iterator end() noexcept {
+            return Iterator{ nullptr };
+        }
+
+        [[nodiscard]] ConstIterator begin() const noexcept {
+            return ConstIterator{ head_.next_node };
+        }
+
+        [[nodiscard]] ConstIterator end() const noexcept {
+            return ConstIterator{ nullptr };
+        }
+
+        [[nodiscard]] ConstIterator cbegin() const noexcept {
+            return ConstIterator{ head_.next_node };
+        }
+
+        [[nodiscard]] ConstIterator cend() const noexcept {
+            return ConstIterator{ nullptr };
+        }
+
+        [[nodiscard]] Iterator before_begin() noexcept {
+            return Iterator{ &head_ };
+        }
+
+        [[nodiscard]] ConstIterator cbefore_begin() const noexcept {
+            return ConstIterator{ const_cast<Node*>(&head_) };
+        }
+
+        [[nodiscard]] ConstIterator before_begin() const noexcept {
+            return ConstIterator{ const_cast<Node*>(&head_) };
+        }
+
+        [[nodiscard]] size_t GetSize() const noexcept {
+            return size_;
+        }
+
+        [[nodiscard]] bool IsEmpty() const noexcept {
+            return size_ == 0;
+        }
+
+        void PushFront(const Type& value) {
+            Node* new_node = new Node(value, head_.next_node);
+            head_.next_node = new_node;
             ++size_;
         }
-    }
 
-    SingleLinkedList(const SingleLinkedList& other) {
-        Node* current = &head_;
-        for (auto it = other.begin(); it != other.end();++it) {
-            current->next_node = new Node(*it, nullptr);
-            current = current->next_node;
+        Iterator InsertAfter(ConstIterator pos, const Type& value) {
+            Node* current = pos.node_;
+            Node* new_node = new Node(value, current->next_node);
+            current->next_node = new_node;
             ++size_;
+            return Iterator{ new_node };
         }
-    }
 
-    ~SingleLinkedList() {
-        Clear();
-    }
-
-    SingleLinkedList& operator=(const SingleLinkedList& rhs) {
-        if (this != &rhs) {
-            SingleLinkedList temp(rhs);
-            swap(temp);
+        void PopFront() noexcept {
+            if (IsEmpty()) {
+                return;
+            }
+            Node* to_delete = head_.next_node;
+            head_.next_node = to_delete->next_node;
+            delete to_delete;
+            --size_;
         }
-        return *this;
-    }
 
-    void swap(SingleLinkedList& other) noexcept {
-        std::swap(head_.next_node, other.head_.next_node);
-        std::swap(size_, other.size_);
-    }
-
-    [[nodiscard]] Iterator begin() noexcept {
-        return Iterator{ head_.next_node };
-    }
-
-    [[nodiscard]] Iterator end() noexcept {
-        return Iterator{ nullptr };
-    }
-
-    [[nodiscard]] ConstIterator begin() const noexcept {
-        return ConstIterator{ head_.next_node };
-    }
-
-    [[nodiscard]] ConstIterator end() const noexcept {
-        return ConstIterator{ nullptr };
-    }
-
-    [[nodiscard]] ConstIterator cbegin() const noexcept {
-        return ConstIterator{ head_.next_node };
-    }
-
-    [[nodiscard]] ConstIterator cend() const noexcept {
-        return ConstIterator{ nullptr };
-    }
-
-    [[nodiscard]] Iterator before_begin() noexcept {
-        return Iterator{ &head_ };
-    }
-
-    [[nodiscard]] ConstIterator cbefore_begin() const noexcept {
-        return ConstIterator{ const_cast<Node*>(&head_) };
-    }
-
-    [[nodiscard]] ConstIterator before_begin() const noexcept {
-        return ConstIterator{ const_cast<Node*>(&head_) };
-    }
-
-    [[nodiscard]] size_t GetSize() const noexcept {
-        return size_;
-    }
-
-    [[nodiscard]] bool IsEmpty() const noexcept {
-        return size_ == 0;
-    }
-
-    void PushFront(const Type& value) {
-        Node* new_node = new Node(value, head_.next_node);
-        head_.next_node = new_node;
-        ++size_;
-    }
-
-    Iterator InsertAfter(ConstIterator pos, const Type& value) {
-        Node* current = pos.node_;
-        Node* new_node = new Node(value, current->next_node);
-        current->next_node = new_node;
-        ++size_;
-        return Iterator{ new_node };
-    }
-
-    void PopFront() noexcept {
-        if (IsEmpty()) {
-            return;
+        Iterator EraseAfter(ConstIterator pos) noexcept {
+            Node* current = pos.node_;
+            Node* to_delete = current->next_node;
+            Node* next_node = to_delete->next_node;
+            current->next_node = next_node;
+            delete to_delete;
+            --size_;
+            return Iterator{ next_node };
         }
-        Node* to_delete = head_.next_node;
-        head_.next_node = to_delete->next_node;
-        delete to_delete;
-        --size_;
-    }
 
-    Iterator EraseAfter(ConstIterator pos) noexcept {
-        Node* current = pos.node_;
-        Node* to_delete = current->next_node;
-        Node* next_node = to_delete->next_node;
-        current->next_node = next_node;
-        delete to_delete;
-        --size_;
-        return Iterator{ next_node };
-    }
-
-    void Clear() noexcept {
-        Node* current = head_.next_node;
-        while (current != nullptr) {
-            Node* next = current->next_node;
-            delete current;
-            current = next;
+        void Clear() noexcept {
+            Node* current = head_.next_node;
+            while (current != nullptr) {
+                Node* next = current->next_node;
+                delete current;
+                current = next;
+            }
+            head_.next_node = nullptr;
+            size_ = 0;
         }
-        head_.next_node = nullptr;
-        size_ = 0;
-    }
-private:
-    // Фиктивный узел, используется для вставки "перед первым элементом"
-    Node head_;
-    size_t size_ = 0;
+
+    private:
+        // Фиктивный узел, используется для вставки "перед первым элементом"
+        Node head_;
+        size_t size_ = 0;
 };
 
 template <typename Type>
